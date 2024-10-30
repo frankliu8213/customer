@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 选择类型</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>选择客户类型</h1>
+        <form method="POST">
+            {% for type in types %}
+                <div>
+                    <label>
+                        <input type="radio" name="customer_type" value="{{ type }}" required>
+                        {{ type }}
+                    </label>
+                </div>
+            {% endfor %}
+            <button type="submit">下一步</button>
+        </form>
+    </div>
+</body>
+</html>

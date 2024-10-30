@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 结果</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- 定义递归宏 -->
+    {% macro render_tree(tree) %}
+        {% if tree %}
+            <ul>
+            {% for key, value in tree.items() %}
+                <li>
+                    {{ key }}
+                    {% if value is mapping %}
+                        {{ render_tree(value) }}
+                    {% elif value is iterable %}
+                        <ul>
+                            {% for item in value %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endmacro %}
+
+    <div class="container">
+        <h1>分类结果</h1>
+        <p><strong>客户姓名：</strong>{{ customer_name }}</p>
+        <p><strong>客户类型：</strong>{{ customer_type }}</p>
+        <p><strong>已选择的分类选项：</strong></p>
+        {% if selected_tree %}
+            {{ render_tree(selected_tree) }}
+        {% else %}
+            <p>您未选择任何选项。</p>
+        {% endif %}
+        <a href="{{ url_for('select_options') }}">返回修改</a>
+    </div>
+</body>
+</html>

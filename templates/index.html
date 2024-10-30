@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 输入姓名</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>客户分类系统</h1>
+        <form method="POST">
+            <div>
+                <input type="text" name="customer_name" required placeholder="请输入客户姓名">
+            </div>
+            <button type="submit">下一步</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 选择分类</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 引入最新版本的Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <!-- 在这里定义宏 -->
+    {% macro render_categories(categories, parent_id='', level=1) %}
+        {% set level_id = 'level' ~ level %}
+        {% for key, value in categories.items() %}
+            {% set current_id = (parent_id ~ '-' if parent_id else '') ~ level_id ~ '-' ~ loop.index0 %}
+            {% if value is mapping %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{ current_id }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ current_id }}" aria-expanded="false" aria-controls="collapse{{ current_id }}">
+                            {{ key }}
+                        </button>
+                    </h2>
+                    <div id="collapse{{ current_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ current_id }}" data-bs-parent="#accordion-{{ level_id }}-{{ parent_id }}">
+                        <div class="accordion-body">
+                            <div class="accordion" id="accordion-{{ level_id }}-{{ current_id }}">
+                                {{ render_categories(value, current_id, level + 1) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elif value is iterable %}
+                <div class="ms-3">
+                    <strong>{{ key }}</strong>
+                    <div class="ms-3">
+                        {% for item in value %}
+                            <div>
+                                <label>
+                                    <input type="checkbox" name="options" value="{{ item }}">
+                                    {{ item }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endmacro %}
+
+    <!-- 页面内容 -->
+    <div class="container">
+        <h1>请选择分类选项</h1>
+        <form method="POST">
+            <div class="accordion" id="accordion-root">
+                <!-- 调用宏来渲染分类 -->
+                {{ render_categories(categories) }}
+            </div>
+            <button type="submit" class="btn btn-primary mt-4">提交</button>
+        </form>
+    </div>
+
+    <!-- 引入Bootstrap JS（包含Popper） -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
