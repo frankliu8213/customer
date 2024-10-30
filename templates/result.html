@@ -3,24 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>客户分类系统 - 结果</title>
+    <!-- 引入样式表 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 引入 Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <!-- 定义递归宏 -->
-    {% macro render_tree(tree) %}
+    <!-- 将需要生成 PDF 的内容包裹在一个 div 中 -->
+    <div id="pdf-content">
+        <!-- 定义递归宏 -->
+        {% macro render_tree(tree) %}
         {% if tree %}
             <ul>
             {% for key, value in tree.items() %}
                 <li>
                     {{ key }}
-                    {% if value is mapping %}
-                        {{ render_tree(value) }}
-                    {% elif value is iterable %}
-                        <ul>
-                            {% for item in value %}
-                                <li>{{ item }}</li>
-                            {% endfor %}
-                        </ul>
+                    {% if value is defined %}
+                        {% if value.items is defined %}
+                            {{ render_tree(value) }}
+                        {% else %}
+                            <ul>
+                                {% for item in value %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     {% endif %}
                 </li>
             {% endfor %}
@@ -28,17 +35,48 @@
         {% endif %}
     {% endmacro %}
 
-    <div class="container">
-        <h1>分类结果</h1>
-        <p><strong>客户姓名：</strong>{{ customer_name }}</p>
-        <p><strong>客户类型：</strong>{{ customer_type }}</p>
-        <p><strong>已选择的分类选项：</strong></p>
-        {% if selected_tree %}
-            {{ render_tree(selected_tree) }}
-        {% else %}
-            <p>您未选择任何选项。</p>
-        {% endif %}
-        <a href="{{ url_for('select_options') }}">返回修改</a>
+        <div class="container">
+            <h1>分析结果</h1>
+            <p><strong>客户姓名：</strong>{{ customer_name }}</p>
+            <p><strong>客户观念分型：</strong>{{ customer_type }}</p>
+            <p><strong>客户分析及策略：</strong></p>
+            {% if selected_tree %}
+                {{ render_tree(selected_tree) }}
+            {% else %}
+                <p>您未选择任何选项。</p>
+            {% endif %}
+        </div>
     </div>
+
+    <!-- 按钮组 -->
+    <div class="button-group">
+        <button id="download-pdf" class="btn btn-success"><i class="fas fa-file-pdf"></i> 生成 PDF</button>
+        <a href="{{ url_for('new_customer') }}" class="btn btn-warning"><i class="fas fa-user-plus"></i> 新客户</a>
+        <a href="{{ url_for('select_options') }}" class="btn btn-primary"><i class="fas fa-edit"></i> 返回修改</a>
+    </div>
+    
+
+    <!-- 引入 html2pdf.js 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- 添加生成 PDF 的脚本 -->
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', function () {
+            // 要转换为 PDF 的元素
+            const element = document.getElementById('pdf-content');
+
+            // 配置选项
+            const opt = {
+                margin:       0.5,
+                filename:     '{{ customer_name }}_分类结果.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
+            };
+
+            // 生成并保存 PDF
+            html2pdf().set(opt).from(element).save();
+        });
+    </script>
 </body>
 </html>

@@ -58,5 +58,12 @@ def result():
     selected_tree = session.get('selected_tree', {})
     return render_template('result.html', customer_name=customer_name, customer_type=customer_type, selected_tree=selected_tree)
 
+@app.route('/new_customer')
+def new_customer():
+    # 清除会话数据
+    session.clear()
+    # 重定向到客户姓名输入页面
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -4,15 +4,20 @@
     <meta charset="UTF-8">
     <title>客户分类系统 - 输入姓名</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>客户分类系统</h1>
+        <h1>皮科GPS导航</h1>
         <form method="POST">
             <div>
                 <input type="text" name="customer_name" required placeholder="请输入客户姓名">
             </div>
-            <button type="submit">下一步</button>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> 下一步
+                </button>
+            </div>
         </form>
     </div>
 </body>
