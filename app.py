@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session
 import json
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key')
 
 # 添加静态文件路径处理
 @app.context_processor
@@ -129,6 +130,10 @@ def new_customer():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+@app.route('/test')
+def test():
+    return 'Hello from Flask!'
 
 if __name__ == '__main__':
     app.run(debug=True)

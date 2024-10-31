@@ -1,18 +1,24 @@
 [build]
   command = """
     python3 -m pip install --upgrade pip &&
-    python3 -m pip install -r requirements.txt &&
-    mkdir -p dist
+    python3 -m pip install -r requirements.txt
   """
   functions = "netlify/functions"
   publish = "dist"
 
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/app"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/app"
+  to = "/.netlify/functions/app/:splat"
   status = 200
   force = true
 

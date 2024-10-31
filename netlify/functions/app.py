@@ -7,6 +7,17 @@ from app import app as flask_app
 
 # 创建 Lambda 处理程序
 def handler(event, context):
+    # 修正路径处理
+    path = event.get('path', '')
+    if path.startswith('/.netlify/functions/app'):
+        path = path.replace('/.netlify/functions/app', '')
+    if not path:
+        path = '/'
+        
+    # 修改请求路径
+    event['path'] = path
+    event['rawPath'] = path
+
     # 将 Flask 应用转换为 Lambda 处理程序
     flask_lambda = FlaskLambda(flask_app)
     
@@ -16,13 +27,12 @@ def handler(event, context):
     # 获取响应内容
     body = response[0]
     status_code = response[1]
-    headers = dict(response[2])  # 转换 headers 为字典
+    headers = dict(response[2])
     
     # 确保 headers 包含正确的 Content-Type
     if 'Content-Type' not in headers:
         headers['Content-Type'] = 'text/html; charset=utf-8'
     
-    # 返回响应
     return {
         'statusCode': status_code,
         'headers': headers,
