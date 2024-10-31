@@ -37,7 +37,8 @@
                         {% for item in value %}
                             <div>
                                 <label>
-                                    <input type="checkbox" name="options" value="{{ item }}">
+                                    <input type="checkbox" name="options" value="{{ item }}" 
+                                           {% if value|length == 1 %}checked{% endif %}>
                                     {{ item }}
                                 </label>
                             </div>
