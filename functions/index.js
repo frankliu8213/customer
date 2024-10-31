@@ -232,13 +232,14 @@ export async function onRequest(context) {
       if (!sessions.has(sessionId)) {
         sessions.set(sessionId, {});
       }
-      sessions.get(sessionId).customerType = customerType;
+      const sessionData = sessions.get(sessionId);
+      sessionData.customerType = customerType;
 
-      // 直接重定向到下一页
-      return new Response(null, {
-        status: 302,
+      // 返回成功响应
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
         headers: {
-          'Location': '/select_options.html',
+          'Content-Type': 'application/json',
           'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Strict`
         }
       });
