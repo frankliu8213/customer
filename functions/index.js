@@ -215,6 +215,44 @@ export async function onRequest(context) {
     });
   }
 
+  // 处理表单提交
+  if (path === '/submit-type' && context.request.method === 'POST') {
+    try {
+      const formData = await context.request.formData();
+      const customerType = formData.get('customer_type');
+      
+      if (!customerType) {
+        return new Response(JSON.stringify({ error: '请选择客户类型' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 将选择的类型存储到会话中
+      const session = context.request.headers.get('Cookie') || '';
+      const headers = new Headers({
+        'Location': '/select_options.html',
+        'Set-Cookie': `customer_type=${encodeURIComponent(customerType)}; Path=/; HttpOnly`
+      });
+
+      // 重定向到下一个页面
+      return new Response(null, {
+        status: 302,
+        headers: headers
+      });
+
+    } catch (error) {
+      console.error('Error processing form submission:', error);
+      return new Response(JSON.stringify({ 
+        error: '提交失败',
+        details: error.message 
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
   // 返回静态文件
   return context.next();
 } 
