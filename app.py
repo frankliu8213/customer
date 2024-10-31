@@ -4,6 +4,14 @@ import json
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# 添加静态文件路径处理
+@app.context_processor
+def utility_processor():
+    def static_url(filename):
+        return f'/.netlify/functions/static/{filename}'
+    return dict(static_url=static_url)
+app.secret_key = 'your_secret_key'
+
 # 读取分类数据
 with open('categories.json', 'r', encoding='utf-8') as f:
     categories = json.load(f)
