@@ -234,11 +234,11 @@ export async function onRequest(context) {
       }
       sessions.get(sessionId).customerType = customerType;
 
-      // 返回成功响应
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
+      // 直接重定向到下一页
+      return new Response(null, {
+        status: 302,
         headers: {
-          'Content-Type': 'application/json',
+          'Location': '/select_options.html',
           'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Strict`
         }
       });

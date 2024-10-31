@@ -72,18 +72,24 @@
                     body: formData
                 });
 
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    // 提交成功，跳转到下一页
+                if (response.redirected) {
+                    // 如果服务器返回重定向，直接跟随重定向
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    // 如果响应成功但没有重定向，手动跳转
                     window.location.href = '/select_options.html';
                 } else {
-                    // 显示错误信息
-                    throw new Error(data.error || '提交失败');
+                    // 尝试解析错误信息
+                    try {
+                        const data = await response.json();
+                        throw new Error(data.error || '提交失败');
+                    } catch (jsonError) {
+                        throw new Error('提交失败，请重试');
+                    }
                 }
             } catch (error) {
                 console.error('Submit error:', error);
-                alert(error.message || '提交失败，请重试');
+                alert(error.message);
             }
         });
 
