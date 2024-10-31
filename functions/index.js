@@ -43,13 +43,11 @@ function buildSelectedTree(categories, selectedOptions) {
 }
 
 export async function onRequest(context) {
-  log('Request received:', {
-    path: context.request.url,
-    method: context.request.method
-  });
-
   const url = new URL(context.request.url);
   const path = url.pathname;
+  const method = context.request.method;
+
+  log('Request received:', { path, method });
 
   // 获取或创建会话 ID
   let sessionId = context.request.headers.get('cookie')?.match(/sessionId=([^;]+)/)?.[1];
@@ -57,166 +55,22 @@ export async function onRequest(context) {
     sessionId = crypto.randomUUID();
   }
 
-  // 主页路由
-  if (path === '/' || path === '/index.html') {
-    if (context.request.method === 'POST') {
-      const formData = await context.request.formData();
-      const customerName = formData.get('customer_name');
-      
-      if (!customerName || !customerName.trim()) {
-        return new Response(JSON.stringify({ error: '请输入客户姓名' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // 创建或更新会话
-      if (!sessions.has(sessionId)) {
-        sessions.set(sessionId, {});
-      }
-      sessions.get(sessionId).customerName = customerName.trim();
-
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': '/select_type.html',
-          'Set-Cookie': `sessionId=${sessionId}; path=/; HttpOnly; SameSite=Strict`
-        }
-      });
-    }
-    return context.next();
-  }
-
-  // 类型选择路由
-  if (path === '/select_type.html') {
-    if (context.request.method === 'POST') {
-      const formData = await context.request.formData();
-      const customerType = formData.get('customer_type');
-      
-      if (sessions.has(sessionId)) {
-        sessions.get(sessionId).customerType = customerType;
-        return new Response(null, {
-          status: 302,
-          headers: {
-            'Location': '/select_options.html',
-            'Set-Cookie': `sessionId=${sessionId}; path=/`
-          }
-        });
-      }
-    }
-    return context.next();
-  }
-
-  // 选项选择路由
-  if (path === '/select_options.html') {
-    const sessionData = sessions.get(sessionId);
-    if (!sessionData?.customerName || !sessionData?.customerType) {
-      return new Response(null, {
-        status: 302,
-        headers: { 'Location': '/' }
-      });
-    }
-    return context.next();
-  }
-
-  // 提交选项
-  if (path === '/submit-options' && context.request.method === 'POST') {
-    const formData = await context.request.formData();
-    const selectedOptions = formData.getAll('options');
-    
-    if (selectedOptions.length === 0) {
-      return new Response(JSON.stringify({ error: '请至少选择一个选项' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    if (sessions.has(sessionId)) {
-      sessions.get(sessionId).selectedOptions = selectedOptions;
-      return new Response(null, {
-        status: 302,
-        headers: { 'Location': '/result.html' }
-      });
-    }
-  }
-
-  // 结果页面路由
-  if (path === '/result.html') {
-    const sessionData = sessions.get(sessionId);
-    const requiredKeys = ['customerName', 'customerType', 'selectedOptions'];
-    if (!sessionData || !requiredKeys.every(key => sessionData[key])) {
-      return new Response(null, {
-        status: 302,
-        headers: { 'Location': '/' }
-      });
-    }
-    return context.next();
-  }
-
-  // API 路由
-  if (path === '/api/get-categories') {
-    try {
-      // 读取 categories.json 文件
-      const categoriesPath = './public/categories.json';
-      const categoriesText = await Deno.readTextFile(categoriesPath);
-      const categories = JSON.parse(categoriesText);
-      
-      // 获取顶级键名
-      const types = Object.keys(categories);
-      
-      // 返回 JSON 响应
-      return new Response(JSON.stringify(types), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'no-cache'
-        }
-      });
-    } catch (error) {
-      console.error('Error loading categories:', error);
-      return new Response(JSON.stringify({
-        error: '加载分类数据失败',
-        details: error.message
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
-  }
-
-  if (path === '/api/get-result') {
-    const sessionData = sessions.get(sessionId);
-    if (sessionData) {
-      const categories = await getCategories();
-      const typeCategories = categories[sessionData.customerType] || {};
-      const selectedTree = buildSelectedTree(typeCategories, sessionData.selectedOptions || []);
-
-      return new Response(JSON.stringify({
-        customerName: sessionData.customerName,
-        customerType: sessionData.customerType,
-        selectedTree: selectedTree
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  }
-
-  // 新客户路由
-  if (path === '/new-customer') {
-    if (sessions.has(sessionId)) {
-      sessions.delete(sessionId);
-    }
-    return new Response(null, {
-      status: 302,
-      headers: { 'Location': '/' }
-    });
-  }
-
   // 处理表单提交
-  if (path === '/submit-type' && context.request.method === 'POST') {
+  if (path === '/submit-type') {
+    // 只允许 POST 方法
+    if (method !== 'POST') {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Method not allowed'
+      }), {
+        status: 405,
+        headers: {
+          'Content-Type': 'application/json',
+          'Allow': 'POST'
+        }
+      });
+    }
+
     try {
       const formData = await context.request.formData();
       const customerType = formData.get('customer_type');
@@ -241,7 +95,7 @@ export async function onRequest(context) {
       const sessionData = sessions.get(sessionId);
       sessionData.customerType = customerType;
 
-      // 返回成功响应，包含重定向信息
+      // 返回成功响应
       return new Response(JSON.stringify({ 
         success: true,
         redirect: '/select_options.html'
@@ -268,6 +122,10 @@ export async function onRequest(context) {
       });
     }
   }
+
+  // 删除重复的路由处理
+  // 删除 select_type.html 的 POST 处理
+  // 保留其他必要的路由
 
   // 返回静态文件
   return context.next();
