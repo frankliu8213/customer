@@ -1,0 +1,8 @@
+name = "customer-service"
+type = "javascript"
+main = "worker.py"
+account_id = "your-account-id"
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2023-01-01" 
