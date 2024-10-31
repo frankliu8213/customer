@@ -72,14 +72,18 @@
                     body: formData
                 });
 
-                if (response.ok) {
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // 提交成功，跳转到下一页
                     window.location.href = '/select_options.html';
                 } else {
-                    throw new Error('提交失败');
+                    // 显示错误信息
+                    throw new Error(data.error || '提交失败');
                 }
             } catch (error) {
                 console.error('Submit error:', error);
-                alert('提交失败，请重试');
+                alert(error.message || '提交失败，请重试');
             }
         });
 

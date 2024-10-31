@@ -228,17 +228,19 @@ export async function onRequest(context) {
         });
       }
 
-      // 将选择的类型存储到会话中
-      const session = context.request.headers.get('Cookie') || '';
-      const headers = new Headers({
-        'Location': '/select_options.html',
-        'Set-Cookie': `customer_type=${encodeURIComponent(customerType)}; Path=/; HttpOnly`
-      });
+      // 更新会话数据
+      if (!sessions.has(sessionId)) {
+        sessions.set(sessionId, {});
+      }
+      sessions.get(sessionId).customerType = customerType;
 
-      // 重定向到下一个页面
-      return new Response(null, {
-        status: 302,
-        headers: headers
+      // 返回成功响应
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Strict`
+        }
       });
 
     } catch (error) {
