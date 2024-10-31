@@ -25,8 +25,19 @@
         async function loadCustomerTypes() {
             try {
                 const response = await fetch('/api/get-categories');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const categories = await response.json();
+                
+                if (!categories || typeof categories !== 'object') {
+                    throw new Error('Invalid categories data');
+                }
+
                 const types = Object.keys(categories);
+                if (types.length === 0) {
+                    throw new Error('No customer types found');
+                }
                 
                 const container = document.getElementById('type-container');
                 container.innerHTML = types.map(type => `
@@ -39,11 +50,19 @@
                 `).join('');
             } catch (error) {
                 console.error('Error loading customer types:', error);
-                alert('加载客户类型失败');
+                alert('加载客户类型失败: ' + error.message);
             }
         }
 
-        window.addEventListener('load', loadCustomerTypes);
+        // 添加页面加载检查
+        window.addEventListener('load', async () => {
+            try {
+                await loadCustomerTypes();
+            } catch (error) {
+                console.error('Page load error:', error);
+                alert('页面加载失败，请刷新重试');
+            }
+        });
     </script>
 </body>
 </html> 

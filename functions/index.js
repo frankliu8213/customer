@@ -1,10 +1,24 @@
 // 使用 Map 模拟会话存储（生产环境应使用 Cloudflare KV）
 const sessions = new Map();
 
+// 添加到文件开头
+function log(message, data = null) {
+    console.log(`[${new Date().toISOString()}] ${message}`, data || '');
+}
+
 // 读取分类数据
 async function getCategories() {
-  const categoriesResponse = await fetch('categories.json');
-  return categoriesResponse.json();
+  try {
+    // 使用完整的 URL 路径
+    const categoriesResponse = await fetch('http://127.0.0.1:8788/categories.json');
+    if (!categoriesResponse.ok) {
+      throw new Error(`HTTP error! status: ${categoriesResponse.status}`);
+    }
+    return await categoriesResponse.json();
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    throw error;
+  }
 }
 
 // 构建选中项的树形结构
@@ -27,6 +41,11 @@ function buildSelectedTree(categories, selectedOptions) {
 }
 
 export async function onRequest(context) {
+  log('Request received:', {
+    path: context.request.url,
+    method: context.request.method
+  });
+
   const url = new URL(context.request.url);
   const path = url.pathname;
 
@@ -42,16 +61,24 @@ export async function onRequest(context) {
       const formData = await context.request.formData();
       const customerName = formData.get('customer_name');
       
+      if (!customerName || !customerName.trim()) {
+        return new Response(JSON.stringify({ error: '请输入客户姓名' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      // 创建或更新会话
       if (!sessions.has(sessionId)) {
         sessions.set(sessionId, {});
       }
-      sessions.get(sessionId).customerName = customerName;
+      sessions.get(sessionId).customerName = customerName.trim();
 
       return new Response(null, {
         status: 302,
         headers: {
           'Location': '/select_type.html',
-          'Set-Cookie': `sessionId=${sessionId}; path=/`
+          'Set-Cookie': `sessionId=${sessionId}; path=/; HttpOnly; SameSite=Strict`
         }
       });
     }
@@ -126,10 +153,23 @@ export async function onRequest(context) {
 
   // API 路由
   if (path === '/api/get-categories') {
-    const categories = await getCategories();
-    return new Response(JSON.stringify(categories), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    log('Fetching categories');
+    try {
+      const categories = await getCategories();
+      log('Categories loaded successfully', categories);
+      return new Response(JSON.stringify(categories), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } catch (error) {
+      log('Error loading categories', error);
+      return new Response(JSON.stringify({ error: '加载分类数据失败' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
   if (path === '/api/get-result') {
