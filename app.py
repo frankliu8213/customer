@@ -8,14 +8,10 @@ app.secret_key = 'your_secret_key'
 @app.context_processor
 def utility_processor():
     def static_url(filename):
-        return f'/.netlify/functions/static/{filename}'
+        return f'/static/{filename}'
     return dict(static_url=static_url)
-app.secret_key = 'your_secret_key'
 
-# 读取分类数据
-with open('categories.json', 'r', encoding='utf-8') as f:
-    categories = json.load(f)
-
+# 确保根路由正确处理
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -128,6 +124,11 @@ def new_customer():
     session.clear()
     # 重定向到客户姓名输入页面
     return redirect(url_for('index'))
+
+# 添加错误处理
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
