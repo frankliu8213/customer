@@ -23,15 +23,23 @@
 
     <script>
         async function loadCustomerTypes() {
+            console.log('开始加载客户类型...');
             try {
-                // 直接从 categories.json 文件获取数据
                 const response = await fetch('/categories.json');
+                console.log('categories.json 响应:', {
+                    status: response.status,
+                    statusText: response.statusText
+                });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const categories = await response.json();
-                const types = Object.keys(categories);  // 获取顶级键名
+                console.log('加载的分类数据:', categories);
+                
+                const types = Object.keys(categories);
+                console.log('解析的客户类型:', types);
                 
                 if (!Array.isArray(types) || types.length === 0) {
                     throw new Error('No customer types found');
@@ -47,9 +55,14 @@
                     </div>
                 `).join('');
 
-                console.log('Types loaded:', types); // 添加调试日志
+                console.log('客户类型加载完成');
             } catch (error) {
-                console.error('Error loading customer types:', error);
+                console.error('加载客户类型失败:', error);
+                console.error('错误详情:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 alert('加载客户类型失败: ' + error.message);
             }
         }
@@ -61,36 +74,63 @@
             const formData = new FormData(this);
             const selectedType = formData.get('customer_type');
             
+            console.log('提交的数据:', {
+                customerType: selectedType
+            });
+            
             if (!selectedType) {
                 alert('请选择一个客户类型');
                 return;
             }
 
             try {
+                console.log('开始发送请求...');
                 const response = await fetch('/submit-type', {
                     method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    body: formData
+                });
+                
+                console.log('收到响应:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
                 });
 
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const data = await response.json();
-                    if (response.ok && data.success) {
-                        // 提交成功，跳转到下一页
-                        window.location.href = '/select_options.html';
-                    } else {
-                        throw new Error(data.error || '提交失败');
-                    }
-                } else {
+                // 检查响应状态
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // 尝试解析响应
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('解析的响应数据:', data);
+                } catch (parseError) {
+                    console.error('解析响应失败:', parseError);
                     throw new Error('服务器响应格式错误');
                 }
+                
+                if (data.success) {
+                    console.log('提交成功，准备跳转到:', data.redirect);
+                    window.location.href = data.redirect || '/select_options.html';
+                } else {
+                    throw new Error(data.error || '提交失败');
+                }
             } catch (error) {
-                console.error('Submit error:', error);
+                console.error('提交错误:', error);
+                console.error('错误详情:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 alert(error.message || '提交失败，请重试');
             }
+        });
+
+        // 添加页面加载完成的调试信息
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，准备加载客户类型...');
         });
 
         // 页面加载时执行

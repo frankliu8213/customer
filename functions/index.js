@@ -222,9 +222,15 @@ export async function onRequest(context) {
       const customerType = formData.get('customer_type');
       
       if (!customerType) {
-        return new Response(JSON.stringify({ error: '请选择客户类型' }), {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: '请选择客户类型' 
+        }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Strict`
+          }
         });
       }
 
@@ -235,8 +241,11 @@ export async function onRequest(context) {
       const sessionData = sessions.get(sessionId);
       sessionData.customerType = customerType;
 
-      // 返回成功响应
-      return new Response(JSON.stringify({ success: true }), {
+      // 返回成功响应，包含重定向信息
+      return new Response(JSON.stringify({ 
+        success: true,
+        redirect: '/select_options.html'
+      }), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
@@ -247,11 +256,15 @@ export async function onRequest(context) {
     } catch (error) {
       console.error('Error processing form submission:', error);
       return new Response(JSON.stringify({ 
+        success: false,
         error: '提交失败',
         details: error.message 
       }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Set-Cookie': `sessionId=${sessionId}; Path=/; HttpOnly; SameSite=Strict`
+        }
       });
     }
   }
