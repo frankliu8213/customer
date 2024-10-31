@@ -9,12 +9,14 @@ function log(message, data = null) {
 // 读取分类数据
 async function getCategories() {
   try {
-    // 使用完整的 URL 路径
-    const categoriesResponse = await fetch('http://127.0.0.1:8788/categories.json');
-    if (!categoriesResponse.ok) {
-      throw new Error(`HTTP error! status: ${categoriesResponse.status}`);
-    }
-    return await categoriesResponse.json();
+    // 从 public 目录读取 categories.json
+    const categoriesPath = './public/categories.json';
+    const categoriesData = await Deno.readTextFile(categoriesPath);
+    const categories = JSON.parse(categoriesData);
+    
+    // 只返回顶级键名
+    const topLevelKeys = Object.keys(categories);
+    return topLevelKeys;
   } catch (error) {
     console.error('Error loading categories:', error);
     throw error;
@@ -153,19 +155,20 @@ export async function onRequest(context) {
 
   // API 路由
   if (path === '/api/get-categories') {
-    log('Fetching categories');
     try {
-      const categories = await getCategories();
-      log('Categories loaded successfully', categories);
-      return new Response(JSON.stringify(categories), {
+      const categoryTypes = await getCategories();
+      return new Response(JSON.stringify(categoryTypes), {
         headers: { 
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
         }
       });
     } catch (error) {
-      log('Error loading categories', error);
-      return new Response(JSON.stringify({ error: '加载分类数据失败' }), {
+      console.error('Error in /api/get-categories:', error);
+      return new Response(JSON.stringify({ 
+        error: '加载客户类型失败',
+        details: error.message 
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });

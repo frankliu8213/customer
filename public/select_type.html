@@ -28,14 +28,9 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const categories = await response.json();
+                const types = await response.json();
                 
-                if (!categories || typeof categories !== 'object') {
-                    throw new Error('Invalid categories data');
-                }
-
-                const types = Object.keys(categories);
-                if (types.length === 0) {
+                if (!Array.isArray(types) || types.length === 0) {
                     throw new Error('No customer types found');
                 }
                 
