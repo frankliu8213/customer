@@ -156,21 +156,33 @@ export async function onRequest(context) {
   // API 路由
   if (path === '/api/get-categories') {
     try {
-      const categoryTypes = await getCategories();
-      return new Response(JSON.stringify(categoryTypes), {
-        headers: { 
+      // 读取 categories.json 文件
+      const categoriesPath = './public/categories.json';
+      const categoriesText = await Deno.readTextFile(categoriesPath);
+      const categories = JSON.parse(categoriesText);
+      
+      // 获取顶级键名
+      const types = Object.keys(categories);
+      
+      // 返回 JSON 响应
+      return new Response(JSON.stringify(types), {
+        headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-cache'
         }
       });
     } catch (error) {
-      console.error('Error in /api/get-categories:', error);
-      return new Response(JSON.stringify({ 
-        error: '加载客户类型失败',
-        details: error.message 
+      console.error('Error loading categories:', error);
+      return new Response(JSON.stringify({
+        error: '加载分类数据失败',
+        details: error.message
       }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
       });
     }
   }
