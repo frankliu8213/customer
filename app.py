@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import json
 
 app = Flask(__name__)
@@ -18,11 +18,20 @@ def index():
 
 @app.route('/select_type', methods=['GET', 'POST'])
 def select_type():
+    # 读取 categories.json 文件
+    with open('categories.json', 'r', encoding='utf-8') as f:
+        categories = json.load(f)
+    
+    # 获取顶级类型列表
+    customer_types = list(categories.keys())
+    
     if request.method == 'POST':
-        customer_type = request.form['customer_type']
-        session['customer_type'] = customer_type
-        return redirect(url_for('select_options'))
-    return render_template('select_type.html', types=categories.keys())
+        customer_type = request.form.get('customer_type')
+        if customer_type:
+            session['customer_type'] = customer_type
+            return redirect(url_for('select_options'))
+    
+    return render_template('select_type.html', customer_types=customer_types)
 
 def build_selected_tree(categories, selected_options):
     result = {}
@@ -39,24 +48,71 @@ def build_selected_tree(categories, selected_options):
 
 @app.route('/select_options', methods=['GET', 'POST'])
 def select_options():
-    customer_type = session.get('customer_type')
-    if not customer_type:
-        return redirect(url_for('select_type'))
+    # 检查是否有客户姓名和类型
+    if 'customer_name' not in session or 'customer_type' not in session:
+        return redirect(url_for('index'))
+    
+    # 读取 categories.json 文件
+    with open('categories.json', 'r', encoding='utf-8') as f:
+        all_categories = json.load(f)
+    
+    # 获取当前选择的客户类型对应的分类
+    customer_type = session['customer_type']
+    categories = all_categories.get(customer_type, {})
+    
     if request.method == 'POST':
         selected_options = request.form.getlist('options')
-        # 构建选中选项的分类树
-        selected_tree = build_selected_tree(categories[customer_type], selected_options)
-        session['selected_tree'] = selected_tree
-        return redirect(url_for('result'))
-    type_categories = categories.get(customer_type, {})
-    return render_template('select_options.html', categories=type_categories)
+        if selected_options:
+            # 保存选中的选项到 session
+            session['selected_options'] = selected_options
+            # 确保重定向到结果页面
+            return redirect(url_for('result'))
+        else:
+            flash('请至少选择一个选项')  # 可选：添加提示信息
+    
+    return render_template('select_options.html', 
+                         categories=categories,
+                         customer_type=customer_type)
 
 @app.route('/result')
 def result():
-    customer_name = session.get('customer_name')
-    customer_type = session.get('customer_type')
-    selected_tree = session.get('selected_tree', {})
-    return render_template('result.html', customer_name=customer_name, customer_type=customer_type, selected_tree=selected_tree)
+    # 检查所有必需的 session 数据
+    required_keys = ['customer_name', 'customer_type', 'selected_options']
+    if not all(key in session for key in required_keys):
+        return redirect(url_for('index'))
+    
+    # 读取categories.json
+    with open('categories.json', 'r', encoding='utf-8') as f:
+        all_categories = json.load(f)
+    
+    # 获取当前客户类型的所有分类
+    customer_type = session['customer_type']
+    type_categories = all_categories.get(customer_type, {})
+    
+    # 构建选中项的树形结构
+    selected_tree = {}
+    selected_options = session.get('selected_options', [])
+    
+    # 遍历分类树，找到选中的选项所属的分类
+    def find_selected_items(categories, tree):
+        for key, value in categories.items():
+            if isinstance(value, dict):
+                subtree = {}
+                find_selected_items(value, subtree)
+                if subtree:
+                    tree[key] = subtree
+            elif isinstance(value, list):
+                selected = [item for item in value if item in selected_options]
+                if selected:
+                    tree[key] = selected
+    
+    # 构建选中项的树
+    find_selected_items(type_categories, selected_tree)
+    
+    return render_template('result.html',
+                         customer_name=session['customer_name'],
+                         customer_type=customer_type,
+                         selected_tree=selected_tree)
 
 @app.route('/new_customer')
 def new_customer():

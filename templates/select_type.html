@@ -11,13 +11,13 @@
         <h1>选择客户类型</h1>
         <form method="POST">
             <div class="radio-group">
-                {% for type in types %}
-                    <div class="radio-item">
-                        <label>
-                            <input type="radio" name="customer_type" value="{{ type }}" required>
-                            {{ type }}
-                        </label>
-                    </div>
+                {% for type in customer_types %}
+                <div class="radio-item">
+                    <label>
+                        <input type="radio" name="customer_type" value="{{ type }}" required>
+                        {{ type }}
+                    </label>
+                </div>
                 {% endfor %}
             </div>
             <div class="button-group">
