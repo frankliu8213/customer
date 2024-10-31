@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 选择分类</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>请匹配针对性选项</h1>
+        <form method="POST" action="/submit-options">
+            <div class="accordion" id="accordion-root">
+                <!-- 这里的内容将由 JavaScript 动态生成 -->
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> 提交
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function renderCategories(categories, parentId = '', level = 1) {
+            let html = '';
+            const levelId = 'level' + level;
+            
+            Object.entries(categories).forEach(([key, value], index) => {
+                const currentId = (parentId ? parentId + '-' : '') + levelId + '-' + index;
+                
+                if (typeof value === 'object' && !Array.isArray(value)) {
+                    html += `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading${currentId}">
+                                <button class="accordion-button" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse${currentId}" 
+                                        aria-expanded="true" 
+                                        aria-controls="collapse${currentId}">
+                                    ${key}
+                                </button>
+                            </h2>
+                            <div id="collapse${currentId}" 
+                                 class="accordion-collapse show" 
+                                 aria-labelledby="heading${currentId}" 
+                                 data-bs-parent="#accordion-${levelId}-${parentId}">
+                                <div class="accordion-body">
+                                    <div class="accordion" id="accordion-${levelId}-${currentId}">
+                                        ${renderCategories(value, currentId, level + 1)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (Array.isArray(value)) {
+                    html += `
+                        <div class="ms-3">
+                            <strong>${key}</strong>
+                            <div class="ms-3">
+                                ${value.map(item => `
+                                    <div>
+                                        <label>
+                                            <input type="checkbox" name="options" value="${item}"
+                                                   ${value.length === 1 ? 'checked' : ''}>
+                                            ${item}
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            return html;
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/get-categories');
+                const allCategories = await response.json();
+                
+                // 从 cookie 或 API 获取当前选择的类型
+                const customerType = await fetch('/api/get-current-type')
+                    .then(r => r.json())
+                    .then(data => data.customerType);
+                
+                const categories = allCategories[customerType] || {};
+                document.getElementById('accordion-root').innerHTML = renderCategories(categories);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                alert('加载分类失败');
+            }
+        }
+
+        window.addEventListener('load', loadCategories);
+    </script>
+</body>
+</html> 

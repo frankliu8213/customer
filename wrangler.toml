@@ -4,6 +4,9 @@ account_id = "your-account-id"
 workers_dev = true
 compatibility_date = "2023-01-01"
 
+[site]
+bucket = "./public"
+
 [[routes]]
 pattern = "/*"
 script = "worker.js" 

@@ -1,3 +1,4 @@
+/* 基础容器样式 */
 .container {
     max-width: 600px;
     margin: 50px auto;
@@ -5,6 +6,7 @@
     text-align: center;
 }
 
+/* 输入框样式 */
 input[type="text"] {
     width: 100%;
     padding: 10px;
@@ -13,17 +15,26 @@ input[type="text"] {
     border-radius: 4px;
 }
 
+/* 按钮组样式 */
 .button-group {
     margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
 }
 
+/* 按钮基础样式 */
 .btn {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
+/* 主要按钮样式 */
 .btn-primary {
     background-color: #007bff;
     color: white;
@@ -31,4 +42,100 @@ input[type="text"] {
 
 .btn-primary:hover {
     background-color: #0056b3;
+}
+
+/* 成功按钮样式 */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+/* 警告按钮样式 */
+.btn-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+/* 单选按钮组样式 */
+.radio-group {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.radio-item {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.radio-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 结果页面样式 */
+#pdf-content {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+#pdf-content ul {
+    text-align: left;
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+#pdf-content li {
+    margin: 5px 0;
+}
+
+/* Accordion 自定义样式 */
+.accordion-item {
+    margin: 10px 0;
+    border: 1px solid #ddd;
+}
+
+.accordion-button {
+    background-color: #f8f9fa;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e9ecef;
+    color: #0056b3;
+}
+
+.accordion-body {
+    padding: 15px;
+}
+
+/* 复选框容器样式 */
+.ms-3 {
+    margin-left: 1rem;
+    text-align: left;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
 } 

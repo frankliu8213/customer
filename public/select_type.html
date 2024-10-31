@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>客户分类系统 - 选择类型</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>选择客户类型</h1>
+        <form method="POST" action="/submit-type">
+            <div class="radio-group" id="type-container">
+                <!-- 这里的内容将由 JavaScript 动态生成 -->
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> 下一步
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        async function loadCustomerTypes() {
+            try {
+                const response = await fetch('/api/get-categories');
+                const categories = await response.json();
+                const types = Object.keys(categories);
+                
+                const container = document.getElementById('type-container');
+                container.innerHTML = types.map(type => `
+                    <div class="radio-item">
+                        <label>
+                            <input type="radio" name="customer_type" value="${type}" required>
+                            ${type}
+                        </label>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading customer types:', error);
+                alert('加载客户类型失败');
+            }
+        }
+
+        window.addEventListener('load', loadCustomerTypes);
+    </script>
+</body>
+</html> 

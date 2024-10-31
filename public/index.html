@@ -9,9 +9,13 @@
 <body>
     <div class="container">
         <h1>皮科GPS导航</h1>
-        <form method="POST">
+        <form method="POST" action="/" id="nameForm">
             <div>
-                <input type="text" name="customer_name" required placeholder="请输入客户姓名">
+                <input type="text" 
+                       name="customer_name" 
+                       required 
+                       placeholder="请输入客户姓名"
+                       autocomplete="off">
             </div>
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">
@@ -20,5 +24,36 @@
             </div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('nameForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const customerName = formData.get('customer_name');
+
+            if (!customerName.trim()) {
+                alert('请输入客户姓名');
+                return;
+            }
+
+            try {
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // 跟随重定向到下一个页面
+                    window.location.href = response.headers.get('Location') || '/select_type.html';
+                } else {
+                    throw new Error('提交失败');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('提交失败，请重试');
+            }
+        });
+    </script>
 </body>
 </html> 
