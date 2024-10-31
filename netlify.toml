@@ -1,14 +1,14 @@
 [build]
   command = """
     python3 -m pip install --upgrade pip &&
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt &&
+    mkdir -p dist
   """
   functions = "netlify/functions"
-  publish = "."
+  publish = "dist"
 
 [functions]
   directory = "netlify/functions"
-  external_node_modules = ["flask-lambda"]
 
 [[redirects]]
   from = "/*"
@@ -16,7 +16,5 @@
   status = 200
   force = true
 
-[[redirects]]
-  from = "/static/*"
-  to = "/.netlify/functions/static/:splat"
-  status = 200
+[build.processing]
+  skip_processing = true
