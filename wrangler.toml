@@ -1,6 +1,0 @@
-name = "your-project-name"
-type = "webpack"
-account_id = "your-account-id"
-workers_dev = true
-route = ""
-zone_id = "" 
