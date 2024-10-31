@@ -18,11 +18,17 @@
             {% if value is mapping %}
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading{{ current_id }}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ current_id }}" aria-expanded="false" aria-controls="collapse{{ current_id }}">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#collapse{{ current_id }}" 
+                                aria-expanded="true" 
+                                aria-controls="collapse{{ current_id }}">
                             {{ key }}
                         </button>
                     </h2>
-                    <div id="collapse{{ current_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ current_id }}" data-bs-parent="#accordion-{{ level_id }}-{{ parent_id }}">
+                    <div id="collapse{{ current_id }}" 
+                         class="accordion-collapse show" 
+                         aria-labelledby="heading{{ current_id }}" 
+                         data-bs-parent="#accordion-{{ level_id }}-{{ parent_id }}">
                         <div class="accordion-body">
                             <div class="accordion" id="accordion-{{ level_id }}-{{ current_id }}">
                                 {{ render_categories(value, current_id, level + 1) }}
