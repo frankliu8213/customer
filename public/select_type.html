@@ -24,11 +24,14 @@
     <script>
         async function loadCustomerTypes() {
             try {
-                const response = await fetch('/api/get-categories');
+                // 直接从 categories.json 文件获取数据
+                const response = await fetch('/categories.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const types = await response.json();
+                
+                const categories = await response.json();
+                const types = Object.keys(categories);  // 获取顶级键名
                 
                 if (!Array.isArray(types) || types.length === 0) {
                     throw new Error('No customer types found');
@@ -43,21 +46,45 @@
                         </label>
                     </div>
                 `).join('');
+
+                console.log('Types loaded:', types); // 添加调试日志
             } catch (error) {
                 console.error('Error loading customer types:', error);
                 alert('加载客户类型失败: ' + error.message);
             }
         }
 
-        // 添加页面加载检查
-        window.addEventListener('load', async () => {
+        // 添加表单提交处理
+        document.querySelector('form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const selectedType = formData.get('customer_type');
+            
+            if (!selectedType) {
+                alert('请选择一个客户类型');
+                return;
+            }
+
             try {
-                await loadCustomerTypes();
+                const response = await fetch('/submit-type', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    window.location.href = '/select_options.html';
+                } else {
+                    throw new Error('提交失败');
+                }
             } catch (error) {
-                console.error('Page load error:', error);
-                alert('页面加载失败，请刷新重试');
+                console.error('Submit error:', error);
+                alert('提交失败，请重试');
             }
         });
+
+        // 页面加载时执行
+        window.addEventListener('load', loadCustomerTypes);
     </script>
 </body>
 </html> 
